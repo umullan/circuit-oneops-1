@@ -94,4 +94,3 @@ service "tomcat" do
   service_name tom_ver
 	action [:enable]
 end
-include_recipe "tomcat::restart"

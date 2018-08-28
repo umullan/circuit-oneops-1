@@ -54,10 +54,14 @@ end
 if ((node['tomcat']['keystore_path'] == nil || node['tomcat']['keystore_path'].empty?) && (node['tomcat']['http_connector_enabled'] == nil || node['tomcat']['http_connector_enabled']=='false'))
   Chef::Log.warn("HTTP and HTTPS are disabled, this may result in no communication to the tomcat instance.")
 end
-
+# We need to set the protocol to use when checking the manager
+node.set['tomcat']['http_or_https']="http"
+node.set['tomcat']['http_or_https_port']=node['tomcat']['port']
 #If HTTPS is enabled by adding a certificate and keystore, define the TLS protcols allowed.
 #If HTTPS is enabled and the user manually disabled all TLS protocols from the UI, TLSv1.2 is enabled.
 if (node['tomcat']['keystore_path'] != nil  && !node['tomcat']['keystore_path'].empty?)
+  node.set['tomcat']['http_or_https']="https"
+  node.set['tomcat']['http_or_https_port']=node['tomcat']['ssl_port']
   node.set['tomcat']['connector']['ssl_configured_protocols'] = ""
   if (node['tomcat']['tlsv1_protocol_enabled'] == 'true')
     node.set['tomcat']['connector']['ssl_configured_protocols'].concat("TLSv1,")

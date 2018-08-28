@@ -27,13 +27,13 @@ attribute 'tomcat_install_dir',
 attribute 'version',
           :description => "Version",
           :required => "required",
-          :default => "7.0.82",
+          :default => "7.0.90",
           :format => {
               :important => true,
               :help => 'Version of Tomcat',
               :category => '1.Global',
               :order => 4,
-              :form => {'field' => 'select', 'options_for_select' => [['7.0.82', '7.0.82'], ['7.0.88', '7.0.88'], ['8.5.23', '8.5.23'], ['8.5.31', '8.5.31']]},
+              :form => {'field' => 'select', 'options_for_select' => [['7.0.82', '7.0.82'], ['7.0.88', '7.0.88'],['7.0.90', '7.0.90'], ['8.5.23', '8.5.23'], ['8.5.31', '8.5.31'], ['8.5.33', '8.5.33']]},
               :pattern => "[0-9\.]+"
           }
 
