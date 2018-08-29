@@ -7,32 +7,41 @@ require 'net/http'
 require 'rubygems'
 require 'xmlsimple'
 
-port = <%= node.tomcat.port %>
+stats = XmlSimple.xml_in(`curl -k -s --user admin:<%= node['tomcat']['manager']['key'] %> "<%= node['tomcat']['http_or_https'] %>://127.0.0.1:<%= node.tomcat.http_or_https_port %>/manager/status?XML=true"`,{ 'KeyAttr' => 'name', 'ForceArray' => false })
 
-stats = XmlSimple.xml_in(`curl -s --user admin:<%= node['tomcat']['manager']['key'] %> "http://127.0.0.1:#{port}/manager/status?XML=true"`,{ 'KeyAttr' => 'name', 'ForceArray' => false })
-
-#puts "stats="+stats.inspect
-#"connector"=>{"http-8080"=>{"threadInfo"=>{
 
 arg = ARGV[0]
 perf = nil
 
 <%
-# default tomcat
-connector_name = '"http-nio-'+node.tomcat.port+'"'
+
+connector_middle = "jsse-nio"
 
 case node.tomcat.protocol
 when 'org.apache.coyote.http11.Http11Protocol'
-	connector_name = '"http-bio-'+node.tomcat.port+'"'
+	connector_middle = "bio"
 when 'HTTP/1.1'
 	if node['tomcat']['version'].gsub(/\..*/,"") == '7'
-		connector_name = '"http-bio-'+node.tomcat.port+'"'
+		connector_middle = "bio"
 	end
+	if node['tomcat']['version'].gsub(/\..*/,"") == '8' && node.tomcat.http_or_https == 'http'
+	    connector_middle = "nio"
+	end
+when 'org.apache.coyote.http11.Http11NioProtocol'
+   	if node['tomcat']['version'].gsub(/\..*/,"") == '7'
+    	connector_middle = "nio"
+    end
+    if node['tomcat']['version'].gsub(/\..*/,"") == '8' && node.tomcat.http_or_https == 'http'
+    	connector_middle = "nio"
+    end
 end
+
+connector_name = '"'+node.tomcat.http_or_https+'-'+connector_middle+'-'+node.tomcat.http_or_https_port+'"'
+
 %>
 
 if arg == "RequestInfo"
-  requestInfo = stats["connector"]['<%= connector_name %>']["requestInfo"]
+  requestInfo = stats["connector"]["requestInfo"]
   bytesSent = requestInfo["bytesSent"]
   bytesReceived = requestInfo["bytesReceived"]
   requestCount = requestInfo["requestCount"]
@@ -43,7 +52,7 @@ if arg == "RequestInfo"
   perf = "bytesSent=#{bytesSent} bytesReceived=#{bytesReceived} requestCount=#{requestCount} errorCount=#{errorCount} maxTime=#{maxTime} processingTime=#{processingTime}"
 
 elsif arg == "ThreadInfo"
-  threadInfo = stats["connector"]['<%= connector_name %>']["threadInfo"]
+  threadInfo = stats["connector"]["threadInfo"]
   currentThreadsBusy = threadInfo["currentThreadsBusy"]
   maxThreads = threadInfo["maxThreads"]
   currentThreadCount = threadInfo["currentThreadCount"]
