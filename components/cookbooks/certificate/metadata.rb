@@ -77,7 +77,7 @@ attribute 'pkcs12',
     :category => '1.Certificate',
     :order => 6,
     :form => { 'field' => 'checkbox' },
-    :help => 'Directory path where the certicate files should be saved',
+    :help => 'Should the certificate be converted to PKCS12 format',
     :filter => {'all' => {'visible' => 'pfx_enable:eq:false'}}
   }
 
